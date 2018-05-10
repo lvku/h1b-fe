@@ -37,8 +37,8 @@
         <pie-chart :data="status_distribution"></pie-chart>
         <div>状态分布</div>
       </div>
-      <div class="md-layout-item md-size-25">
-        <img src="assets/zanshang.jpg" />
+      <div class="md-layout-item md-size-20">
+        <img src="../assets/zanshang.jpg" />
         <div>微信打赏</div>
       </div>
       <div class="md-layout-item md-size-25">
