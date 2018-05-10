@@ -16,6 +16,12 @@ from email.utils import COMMASPACE, formatdate
 from email import Encoders
 from optparse import OptionParser
 from datetime import datetime, date
+import sqlite3
+import time
+import calendar
+import setting
+
+DATABASE=setting.DATABASE
 
 STATUS_OK = 0
 STATUS_ERROR = -1
@@ -27,7 +33,7 @@ FILENAME_LASTSTATUS = os.path.join(sys.path[0], "LAST_STATUS_{0}.txt")
 # email: myname@gmail.com
 # password: xxxx
 # smtpserver: smtp.gmail.com:587
-EMAIL_NOTICE_SENDER = {"email": "", "password": "", "smtpserver": ""}
+EMAIL_NOTICE_SENDER = setting.EMAIL_NOTICE_SENDER
 
 
 def poll_optstatus(casenumber):
@@ -106,83 +112,25 @@ def send_mail(sentfrom,
         print 'failed to send a mail '
 
 
-def on_status_fetch(status, casenumber):
-    """
-    fetch status and update last_status record file,
-    or create it if it doesn't exist
-    Returns:
-        changed flag indicating if status has changed since last time and last status
-        (changed, last_status)
-        If no prior history is available, then return (False, None)
-    """
-    # normalize
-    status = status.strip()
-    record_filepath = FILENAME_LASTSTATUS.format(casenumber)
-    changed = False
-    last_status = None
-    if not os.path.exists(record_filepath):
-        with open(record_filepath, 'w') as f:
-            f.write(status)
-    # there is prior status, read it and compare with current
-    else:
-        with open(record_filepath, 'r+') as f:
-            last_status = f.read().strip()
-            # update status on difference
-            if status != last_status:
-                changed = True
-                f.seek(0)
-                f.truncate()
-                f.write(status)
-    return (changed, last_status)
+def get_days_since_received(status_detail):
+    "parse case status and computes number of days elapsed since case-received"
+    date_regex = re.compile(r'^On (\w+ +\d+, \d{4}), .*')
+    m = date_regex.match(status_detail)
+    datestr = m.group(1)
+    if not datestr:
+        return -1
+    recv_date = datetime.strptime(datestr, "%B %d, %Y").date()
+    today = date.today()
+    span = (today - recv_date).days
+    return span
 
+def do_check(case):
 
-def main():
-    def get_days_since_received(status_detail):
-        "parse case status and computes number of days elapsed since case-received"
-        date_regex = re.compile(r'^On (\w+ +\d+, \d{4}), .*')
-        m = date_regex.match(status_detail)
-        datestr = m.group(1)
-        if not datestr:
-            return -1
-        recv_date = datetime.strptime(datestr, "%B %d, %Y").date()
-        today = date.today()
-        span = (today - recv_date).days
-        return span
-
-    usage = """
-    usage: %prog -c <case_number> [options]
-    """
-    parser = OptionParser(usage=usage)
-    parser.add_option(
-        '-c',
-        '--casenumber',
-        type='string',
-        action='store',
-        dest='casenumber',
-        default='YSC1790016391',
-        help='the USCIS case receipt number you can to query')
-    parser.add_option(
-        '-d',
-        '--detail',
-        action='store_true',
-        dest='detailOn',
-        help="request details about the status returned")
-    parser.add_option(
-        '--mailto',
-        action='store',
-        dest='receivers',
-        help=(
-            "optionally add one or more emails addresses, separated by comma,"
-            " to send the notification mail to"))
-    opts, args = parser.parse_args()
-    casenumber = opts.casenumber
-    if not casenumber:
-        raise parser.error("No casenumber is provided")
+    casenumber = case['case_id']
     # poll status
     code, status, detail = poll_optstatus(casenumber)
     if code == STATUS_ERROR:
-        print "The case number %s is invalid." % casenumber
-        return
+        raise Exception("The case number %s is invalid." % casenumber)
     # report format
     report_format = ("-------  Your USCIS Case [{0}]---------"
                      "\nCurrent Status: [{1}]"
@@ -191,21 +139,82 @@ def main():
 
     report = report_format.format(casenumber, status, days_elapsed)
     # compare with last status
-    changed, laststatus = on_status_fetch(status, casenumber)
+    changed = False
+    if case['status'] != status:
+        changed = True
     # generate report
     report = '\n'.join(
         [report, "Previous Status:%s \nChanged?: %s" % (laststatus, changed),
          "Current Timestamp: %s " % datetime.now().strftime("%Y-%m-%d %H:%M")])
-    if opts.detailOn:
-        report = '\n'.join((report, "\nDetail:\n\n%s" % detail))
-    # console output
-    print report
     # email notification on status change
-    if opts.receivers and changed:
+    if case['email'] and changed:
         recv_list = opts.receivers.split(',')
         subject = "Your USCIS Case %s Status Change Notice " % casenumber
         send_mail("USCIS Case Status Notify", recv_list, subject, report)
 
+def make_dicts(cursor, row):
+    return dict((cursor.description[idx][0], value)
+                for idx, value in enumerate(row))
+
+def query_db(db, query, args=(), one=False):
+    db.row_factory = make_dicts
+    cur = db.execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
+
+def insert_db(db, query, args=()):
+    db.cursor().execute(query, args)
+    db.commit()
+
+CASES_SQL = '''
+SELECT
+    case_id, email, interval
+FROM
+    h1b_case
+'''
+STATUS_SQL = '''
+SELECT
+    status, last_check
+FROM
+    h1b_case_history
+WHERE case_id = ?
+ORDER BY last_check DESC
+LIMIT 1
+'''
+INSERT_HISTORY = '''
+INSERT INTO
+    h1b_case_history(case_id, status)
+VALUES(?, ?)
+'''
+
+def get_all_cases(db):
+    to_check_cases = []
+    cases = query_db(db, CASES_SQL)
+    for case in cases:
+        status = query_db(db, STATUS_SQL, [case['case_id']], one=True)
+        if status:
+            case['status'] = status['status']
+            time_stamp = calendar.timegm(
+                time.strptime(status['last_check'], "%Y-%m-%d %H:%M:%S"))
+            now_time_stamp = int(time.time())
+            if now_time_stamp - time_stamp > case['interval']:
+                to_check_cases.append(case)
+        else:
+            case['status'] = None
+            to_check_cases.append(case)
+    return to_check_cases
+
+def main():
+    db = sqlite3.connect(DATABASE)
+    to_check_cases = get_all_cases(db)
+    for case in to_check_cases:
+        print(case)
+        try:
+            status = do_check(case)
+            insert_db(db, INSERT_HISTORY, [case['case_id'], status])
+        except Exception as err:
+            print(err)
 
 if __name__ == '__main__':
     main()

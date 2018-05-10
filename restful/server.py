@@ -1,10 +1,11 @@
 import sqlite3
+import setting
 from flask import g, Flask
 from flask_restful import Resource, Api, reqparse
 app = Flask(__name__)
 api = Api(app)
 
-DATABASE = '/usr/local/google/home/hongmingl/Downloads/sqlite-tools-linux-x86-3230100/cases.db'
+DATABASE = setting.DATABASE
 
 SQL = '''
 CREATE TABLE h1b_case(
