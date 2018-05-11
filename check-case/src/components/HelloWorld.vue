@@ -81,7 +81,7 @@
           <md-table-row v-for="item in check_history.case_history"
                         v-bind:key="item.id">
             <md-table-cell md-numeric>{{item.status}}</md-table-cell>
-            <md-table-cell md-numeric>{{item.last_check}}</md-table-cell>
+            <md-table-cell md-numeric>{{convertTime(item.last_check)}}</md-table-cell>
           </md-table-row>
         </md-table>
         <div v-if="!check_history.case">Wrong case number!</div>
@@ -192,6 +192,10 @@ export default {
       .catch(e => {
         this.check_history = e;
       })
+    },
+    convertTime (date_string) {
+      var date = new Date(date_string + ' UTC');
+      return date.toString();
     }
   }
 }
