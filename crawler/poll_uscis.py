@@ -108,7 +108,8 @@ def send_mail(sentfrom,
         smtp_s.sendmail(sentfrom, to, msg.as_string())
         smtp_s.close()
         print "successfully sent the mail !"
-    except:
+    except Exception as err:
+	print(err)
         print 'failed to send a mail '
 
 
@@ -144,13 +145,14 @@ def do_check(case):
         changed = True
     # generate report
     report = '\n'.join(
-        [report, "Previous Status:%s \nChanged?: %s" % (laststatus, changed),
+        [report, "Previous Status:%s \nChanged?: %s" % (case['status'], changed),
          "Current Timestamp: %s " % datetime.now().strftime("%Y-%m-%d %H:%M")])
     # email notification on status change
     if case['email'] and changed:
-        recv_list = opts.receivers.split(',')
+        recv_list = case['email'].split(',')
         subject = "Your USCIS Case %s Status Change Notice " % casenumber
         send_mail("USCIS Case Status Notify", recv_list, subject, report)
+    return status
 
 def make_dicts(cursor, row):
     return dict((cursor.description[idx][0], value)
