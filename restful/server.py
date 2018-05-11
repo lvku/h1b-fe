@@ -12,6 +12,7 @@ CREATE TABLE h1b_case(
    case_id TEXT PRIMARY KEY NOT NULL,
    email TEXT NOT NULL,
    interval INT DEFAULT 86400,
+   enable INT DEFAULT 1,
    add_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO h1b_case(case_id, email) VALUES('123', '456');
@@ -38,18 +39,24 @@ STATUS_DISTRIBUTION = '''
 SELECT
     status, COUNT(status) AS cnt
 FROM (
-    SELECT
-        case_id, status
-    FROM
-        h1b_case_history
-    GROUP BY case_id, status
+    SELECT case_id, status
+    FROM (
+        SELECT
+            case_id, status
+        FROM
+            h1b_case_history
+        GROUP BY case_id, status
+    )
+    GROUP BY case_id
 )
+GROUP BY status
 '''
 CHECK_INTERVAL_DISTRIBUTION = '''
 SELECT
     interval, COUNT(interval) AS cnt
 FROM
     h1b_case
+GROUP BY interval
 '''
 H1B_CASE_SQL = '''
 SELECT

@@ -1,5 +1,10 @@
 <template>
   <div style="width: 95%;">
+    <md-dialog-alert
+      :md-active.sync="show_dialog"
+      :md-content="message"
+      md-confirm-text="Cool!" />
+
     <div class="md-layout md-gutter md-alignment-center-center">
       <div class="md-layout-item md-size-60">
         <h3>输入case number和email,提交后系统默认每天查询一次，如果发现状态改变会发邮件通知.Good luck!</h3>
@@ -33,15 +38,15 @@
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-25">
+      <div class="md-layout-item md-size-25 md-small-size-100 md-xsmall-size-100">
         <pie-chart :data="status_distribution"></pie-chart>
         <div>状态分布</div>
       </div>
-      <div class="md-layout-item md-size-20">
+      <div class="md-layout-item md-size-20 md-small-size-100 md-xsmall-size-100">
         <img src="../assets/zanshang.jpg" />
         <div>微信打赏</div>
       </div>
-      <div class="md-layout-item md-size-25">
+      <div class="md-layout-item md-size-25 md-small-size-100 md-xsmall-size-100">
         <pie-chart :data="interval_distribution"></pie-chart>
         <div>查询间隔分布(秒)</div>
       </div>
@@ -73,7 +78,8 @@
              <md-table-head>Status</md-table-head>
              <md-table-head>Last Check Time</md-table-head>
           </md-table-row>
-          <md-table-row v-for="item in check_history.case_history">
+          <md-table-row v-for="item in check_history.case_history"
+                        v-bind:key="item.id">
             <md-table-cell md-numeric>{{item.status}}</md-table-cell>
             <md-table-cell md-numeric>{{item.last_check}}</md-table-cell>
           </md-table-row>
@@ -83,7 +89,8 @@
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
       <div class="md-layout-item md-size-60">
-        <h3>站长今年也在抽h1b,懒得每天自己查询，遂写了脚本定时查询。想着和我同样情况的兄弟姐妹不在少数，就又写了个网站，方便大家使用，为了防止爬虫被禁，所以默认查询间隔为24小时。欢迎微信打赏，打赏后请联系站长，手动修改查询时间。打赏金额不限，打赏金用来支付服务器租赁费用。</h3>
+        <h3>站长今年也在抽h1b,懒得每天自己查询，遂写了脚本定时查询。想着和我同样情况的兄弟姐妹不在少数，就又写了个网站，方便大家使用，为了防止爬虫被禁，所以默认查询间隔为24小时。欢迎微信打赏，金额不限，打赏后扫描下方二维码联系站长，手动缩短查询时间间隔。不打赏也欢迎加站长微信，可以拉到今年微信群。打赏金用来支付服务器租赁费用。</h3>
+        <img src="../assets/weixin.jpg" />
       </div>
     </div>
   </div>
@@ -117,7 +124,9 @@ export default {
         case: {
           case_id: ''
         }
-      }
+      },
+      message: '',
+      show_dialog: false
     }
   },
   validations: {
@@ -165,9 +174,13 @@ export default {
         })
         .then(response => {
           console.log(response);
+          this.message = 'Insert Successfully!!';
+          this.show_dialog = true;
         })
         .catch(e => {
           console.log(e);
+          this.message = 'Error!!';
+          this.show_dialog = true;
         })
       }
     },
