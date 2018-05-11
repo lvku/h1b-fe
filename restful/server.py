@@ -2,8 +2,8 @@ import sqlite3
 import setting
 from flask import g, Flask
 from flask_restful import Resource, Api, reqparse
-app = Flask(__name__)
-api = Api(app)
+application = Flask(__name__)
+api = Api(application)
 
 DATABASE = setting.DATABASE
 
@@ -78,7 +78,7 @@ def get_db():
         db = g._database = sqlite3.connect(DATABASE)
     return db
 
-@app.teardown_appcontext
+@application.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
@@ -146,6 +146,6 @@ class Status(Resource):
 api.add_resource(Case, '/api/cases', '/api/cases/<string:case_id>')
 api.add_resource(Status, '/api/status')
 
-@app.route("/")
+@application.route("/")
 def hello():
-    return "Hello World!"
+    return "Bingo!! Nothing is here!!!"
