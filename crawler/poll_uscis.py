@@ -115,9 +115,9 @@ def send_mail(sentfrom,
 
 def get_days_since_received(status_detail):
     "parse case status and computes number of days elapsed since case-received"
-    date_regex = re.compile(r'^On (\w+ +\d+, \d{4}), .*')
+    date_regex = re.compile(r'^(On|As of) (\w+ +\d+, \d{4}), .*')
     m = date_regex.match(status_detail)
-    datestr = m.group(1)
+    datestr = m.group(2)
     if not datestr:
         return -1
     recv_date = datetime.strptime(datestr, "%B %d, %Y").date()
