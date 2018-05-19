@@ -34,19 +34,23 @@
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
       <div class="md-layout-item md-size-60">
-        <h3>数据分布：不同状态case数量以及本站每个case的查询间隔。</h3>
+        <h3>数据分布</h3>
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-25 md-small-size-100 md-xsmall-size-100">
-        <pie-chart :data="status_distribution"></pie-chart>
+      <div class="md-layout-item md-size-60">
+        <bar-chart :data="status_distribution"></bar-chart>
         <div>状态分布</div>
       </div>
-      <div class="md-layout-item md-size-20 md-small-size-100 md-xsmall-size-100">
+    </div>
+    <div class="md-layout md-gutter md-alignment-center-center">
+      <div class="md-layout-item md-size-60">
         <img src="../assets/zanshang.jpg" />
         <div>微信打赏</div>
       </div>
-      <div class="md-layout-item md-size-25 md-small-size-100 md-xsmall-size-100">
+    </div>
+    <div class="md-layout md-gutter md-alignment-center-center">
+      <div>
         <pie-chart :data="interval_distribution"></pie-chart>
         <div>查询间隔分布(秒)</div>
       </div>
