@@ -39,15 +39,16 @@ STATUS_DISTRIBUTION = '''
 SELECT
     status, COUNT(status) AS cnt
 FROM (
-    SELECT case_id, status
-    FROM (
-        SELECT
-            case_id, status
-        FROM
-            h1b_case_history
-        GROUP BY case_id, status
-    )
-    GROUP BY case_id
+    SELECT status
+    FROM h1b_case_history
+    INNER JOIN (
+      SELECT
+        MAX(id) AS id
+      FROM
+        h1b_case_history
+      GROUP BY case_id
+    ) AS t
+    ON h1b_case_history.id = t.id
 )
 GROUP BY status
 '''
