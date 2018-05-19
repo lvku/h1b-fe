@@ -146,7 +146,9 @@ def do_check(case):
     # generate report
     report = '\n'.join(
         [report, "Previous Status:%s \nChanged?: %s" % (case['status'], changed),
-         "Current Timestamp: %s " % datetime.now().strftime("%Y-%m-%d %H:%M")])
+         "Current Timestamp: %s " % datetime.now().strftime("%Y-%m-%d %H:%M"),
+	 "For details: http://h1b.laiaolai.com",
+	 "Donation is welcome!!"])
     # email notification on status change
     if case['email'] and changed:
         recv_list = case['email'].split(',')
