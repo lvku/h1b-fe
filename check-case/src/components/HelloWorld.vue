@@ -1,17 +1,17 @@
 <template>
-  <div style="width: 95%;">
+  <div style="margin-left: 20px; margin-right: 20px;">
     <md-dialog-alert
       :md-active.sync="show_dialog"
       :md-content="message"
       md-confirm-text="Cool!" />
 
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <h3>输入case number和email,提交后系统默认每天查询一次，如果发现状态改变会发邮件通知.Good luck!</h3>
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <form novalidate class="md-layout" @submit.prevent="validateForm">
           <md-field :class="getValidationClass('caseNumber')">
             <label>Case Number:</label>
@@ -33,18 +33,18 @@
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <h3>数据分布</h3>
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <bar-chart :data="status_distribution"></bar-chart>
         <div>状态分布</div>
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <img src="../assets/zanshang.jpg" />
         <div>微信打赏</div>
       </div>
@@ -56,12 +56,12 @@
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <h3>输入case number查看该case的最近15条查询时间记录</h3>
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <form novalidate class="md-layout" @submit.prevent="checkCaseHistoy">
           <md-field>
             <label>Case Number:</label>
@@ -73,7 +73,7 @@
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <md-table v-if="check_history.case">
           <md-table-toolbar>
             <h1 class="md-title">Check History for Case: {{check_history.case.case_id}}</h1>
@@ -92,7 +92,7 @@
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-center-center">
-      <div class="md-layout-item md-size-60">
+      <div class="md-layout-item md-size-90">
         <h3>站长今年也在抽h1b,懒得每天自己查询，遂写了脚本定时查询。想着和我同样情况的兄弟姐妹不在少数，就又写了个网站，方便大家使用，为了防止爬虫被禁，所以默认查询间隔为24小时。欢迎微信打赏，金额不限，打赏后扫描下方二维码联系站长，手动缩短查询时间间隔。不打赏也欢迎加站长微信，可以拉到今年微信群。打赏金用来支付服务器租赁费用。</h3>
         <img src="../assets/weixin.jpg" />
       </div>
