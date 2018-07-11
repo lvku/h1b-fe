@@ -34,6 +34,7 @@ FILENAME_LASTSTATUS = os.path.join(sys.path[0], "LAST_STATUS_{0}.txt")
 # password: xxxx
 # smtpserver: smtp.gmail.com:587
 EMAIL_NOTICE_SENDER = setting.EMAIL_NOTICE_SENDER
+NOT_FOUND_IN_EGOV = 'Not Found in egov.uscis.gov'
 
 
 def poll_optstatus(casenumber):
@@ -131,7 +132,7 @@ def do_check(case):
     # poll status
     code, status, detail = poll_optstatus(casenumber)
     if code == STATUS_ERROR:
-        raise Exception("The case number %s is invalid." % casenumber)
+        return NOT_FOUND_IN_EGOV
     # report format
     report_format = ("-------  Your USCIS Case [{0}]---------"
                      "\nCurrent Status: [{1}]"
@@ -216,7 +217,8 @@ def main():
         print(case)
         try:
             status = do_check(case)
-            insert_db(db, INSERT_HISTORY, [case['case_id'], status])
+            if status != NOT_FOUND_IN_EGOV or case['status'] == None or case['status'] == NOT_FOUND_IN_EGOV:
+                insert_db(db, INSERT_HISTORY, [case['case_id'], status])
         except Exception as err:
             print(err)
 
