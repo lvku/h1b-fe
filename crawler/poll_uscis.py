@@ -215,6 +215,7 @@ def main():
     to_check_cases = get_all_cases(db)
     for case in to_check_cases:
         print(case)
+        time.sleep(5)
         try:
             status = do_check(case)
             if status != NOT_FOUND_IN_EGOV or case['status'] == None or case['status'] == NOT_FOUND_IN_EGOV:
