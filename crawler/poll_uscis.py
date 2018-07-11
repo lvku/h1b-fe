@@ -197,7 +197,7 @@ def get_all_cases(db):
     cases = query_db(db, CASES_SQL)
     for case in cases:
         status = query_db(db, STATUS_SQL, [case['case_id']], one=True)
-        if status:
+        if status and status['status'] != 'Case Was Approved':
             case['status'] = status['status']
             time_stamp = calendar.timegm(
                 time.strptime(status['last_check'], "%Y-%m-%d %H:%M:%S"))
