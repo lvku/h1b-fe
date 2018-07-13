@@ -66,6 +66,7 @@ def poll_optstatus(casenumber):
 
     res = requests.post(url, data=data, headers=headers)
     doc = pq(res.text)
+    print(doc)
     status = doc('h1').text()
     code = STATUS_OK if status else STATUS_ERROR
     details = doc('.text-center p').text()
@@ -118,6 +119,8 @@ def get_days_since_received(status_detail):
     "parse case status and computes number of days elapsed since case-received"
     date_regex = re.compile(r'^(On|As of) (\w+ +\d+, \d{4}), .*')
     m = date_regex.match(status_detail)
+    if not m:
+        return 'Unknown'
     datestr = m.group(2)
     if not datestr:
         return -1
@@ -198,12 +201,20 @@ def get_all_cases(db):
     cases = query_db(db, CASES_SQL)
     for case in cases:
         status = query_db(db, STATUS_SQL, [case['case_id']], one=True)
-        if status and status['status'] != 'Case Was Approved':
+        if status:
+            if status['status'] == 'Case Was Approved':
+                continue
+            if status['status'] == 'Case Was Approved And My Decision Was Emailed':
+                continue
             case['status'] = status['status']
             time_stamp = calendar.timegm(
                 time.strptime(status['last_check'], "%Y-%m-%d %H:%M:%S"))
             now_time_stamp = int(time.time())
             if now_time_stamp - time_stamp > case['interval']:
+                print(now_time_stamp)
+                print(time_stamp)
+                print(case)
+                print('-------------------------------')
                 to_check_cases.append(case)
         else:
             case['status'] = None
@@ -215,9 +226,12 @@ def main():
     to_check_cases = get_all_cases(db)
     for case in to_check_cases:
         print(case)
+        time.sleep(5)
         try:
             status = do_check(case)
+            print(status)
             if status != NOT_FOUND_IN_EGOV or case['status'] == None or case['status'] == NOT_FOUND_IN_EGOV:
+                print('Insert')
                 insert_db(db, INSERT_HISTORY, [case['case_id'], status])
         except Exception as err:
             print(err)
